@@ -1,0 +1,10 @@
+[DEFAULT]
+max_idle_server_connections=64
+
+[router:read_write_split]
+bind_port=6450
+destinations=metadata-cache://mysql-master/?role=PRIMARY_AND_SECONDARY
+routing_strategy=round-robin
+access_mode=auto
+protocol=classic
+connection_sharing=1

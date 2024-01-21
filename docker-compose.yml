@@ -2,17 +2,21 @@ services:
   mysql-master:
     image: docker.io/bitnami/mysql:latest
     ports:
-      - '3306'
+      - '127.0.0.1:33306:3306'
 #    volumes:
 #      - ./my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
 #      - 'mysql_master_data:/bitnami/mysql/data'
     environment:
       - MYSQL_REPLICATION_MODE=master
       - MYSQL_REPLICATION_USER=repl_user
-      - MYSQL_USER=my_user
+      - MYSQL_REPLICATION_PASSWORD=my_repl_password
+
       - MYSQL_DATABASE=my_database
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
+
+      - MYSQL_AUTHENTICATION_PLUGIN=caching_sha2_password
+      - MYSQL_USER=master_user
+      - MYSQL_PASSWORD=master_password
+
       - MYSQL_ROOT_PASSWORD=my_root_password
     healthcheck:
       test: ['CMD', '/opt/bitnami/scripts/mysql/healthcheck.sh']
@@ -22,24 +26,21 @@ services:
 
   mysql-slave:
     image: docker.io/bitnami/mysql:latest
-    volumes:
-      - ./slave_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
+    # volumes:
+    #   - ./slave_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
     ports:
-      - '3306'
+      - '127.0.0.1:33307:3306'
     depends_on:
       - mysql-master
     environment:
       - MYSQL_REPLICATION_MODE=slave
       - MYSQL_REPLICATION_USER=repl_user
-      - MYSQL_USER=my_user
-      - MYSQL_DATABASE=my_database
-      - MYSQL_MASTER_HOST=mysql-master
-      - MYSQL_MASTER_PORT_NUMBER=3306
-      - MYSQL_MASTER_ROOT_PASSWORD=my_root_password
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
-      # In case of missing binary files on master, use `true` to reset those binary files. Creating a previous backup is recommended.
+      - MYSQL_REPLICATION_PASSWORD=my_repl_password
       - MYSQL_REPLICATION_SLAVE_DUMP=false
+
+      - MYSQL_MASTER_HOST=mysql-master
+      - MYSQL_MASTER_ROOT_PASSWORD=my_root_password
+      - MYSQL_MASTER_PORT_NUMBER=3306
     healthcheck:
       test: ['CMD', '/opt/bitnami/scripts/mysql/healthcheck.sh']
       interval: 15s
